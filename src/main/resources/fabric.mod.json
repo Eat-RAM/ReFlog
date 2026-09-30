@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "reflog",
+  "version": "0.0.1",
+  "name": "ReFlog",
+  "description":
+  "Make blocks fluidloggable at a precision of fluid state-level",
+  "authors": [
+    {
+      "name": "REGE",
+      "contact": {"homepage": "https://github.com/IAmREGE"}
+    }
+  ],
+  "contact": {
+    "homepage": "https://github.com/Eat-RAM/ReFlog",
+    "issues": "https://github.com/Eat-RAM/ReFlog/issues",
+    "sources": "https://github.com/Eat-RAM/ReFlog/tree/latest-mc"
+  },
+  "license": "MIT",
+  "icon": "assets/reflog/textures/icon.png",
+  "environment": "*",
+  "mixins": [
+    "reflog.mixins.json",
+    "reflog-blockfix.mixins.json",
+    {
+      "config": "reflog.client.mixins.json",
+      "environment": "client"
+    },
+    {
+      "config": "reflog-litematica.mixins.json",
+      "environment": "client"
+    },
+    {
+      "config": "reflog-sodium.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.0",
+    "minecraft": "~26.3",
+    "java": ">=25"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "package": "io.github.eat_ram.reflog.compat.litematica.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "MaterialListUtilsMixin"
+  ],
+  "injectors": {"defaultRequire": 0}
+}

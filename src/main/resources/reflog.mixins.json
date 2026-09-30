@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "package": "io.github.eat_ram.reflog.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "AbstractBlockMixin",
+    "AbstractBlockStateMixin",
+    "BlockMixin",
+    "BlocksMixin",
+    "BucketItemMixin",
+    "BuilderMixin",
+    "FallingBlockEntityMixin",
+    "FlowableFluidMixin",
+    "FoliagePlacerMixin",
+    "MultipleMixins1",
+    "MultipleMixins2",
+    "StateMixin",
+    "TallBlockItemMixin"
+  ],
+  "injectors": {"defaultRequire": 1}
+}
