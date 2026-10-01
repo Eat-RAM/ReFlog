@@ -49,32 +49,27 @@ public abstract class SugarCaneBlockMixin {
         return original.call(instance, pos);
     }
 
-    @ModifyExpressionValue(method = "randomTick", at = {@At(
+    @ModifyExpressionValue(method = "randomTick", at = @At(
         value = "INVOKE", ordinal = 0,
-        target = "Lnet/minecraft/block/BlockState;with(Lnet/minecraft/state/property/Property;Ljava/lang/Comparable;)Ljava/lang/Object;"
-    ), @At(
-        value = "INVOKE", ordinal = 1,
-        target = "Lnet/minecraft/block/BlockState;with(Lnet/minecraft/state/property/Property;Ljava/lang/Comparable;)Ljava/lang/Object;"
-    )})
-    private Object modifyBlockState(
-        Object original, final BlockState state, final ServerWorld level,
+        target = "Lnet/minecraft/block/SugarCaneBlock;getDefaultState()Lnet/minecraft/block/BlockState;"
+    ))
+    private BlockState growToFluid(
+        BlockState original, final BlockState state, final ServerWorld level,
         final BlockPos pos, final Random random
     ) {
-        BlockState nstate = (BlockState)original;
-        Block block = nstate.getBlock();
+        Block block = original.getBlock();
         StringProperty fluidlogged =
         ModifyExisting.OVERRIDES.get(block.getClass());
         if (fluidlogged != null) {
-            FluidState otherFluidState =
-            level.getBlockState(pos.up()).getFluidState();
+            FluidState fluidState = level.getFluidState(pos.up());
             String escaped = FluidStateTranscript.escape(
                 block instanceof Waterloggable &&
                 fluidlogged.getName().equals(WATERLOGGED.getName()) ?
-                FluidStateTranscript.transcriptWaterlogged(otherFluidState) :
-                FluidStateTranscript.transcript(otherFluidState)
+                FluidStateTranscript.transcriptWaterlogged(fluidState) :
+                FluidStateTranscript.transcript(fluidState)
             );
             if (fluidlogged.getValues().contains(escaped)) {
-                return nstate.withIfExists(fluidlogged, escaped);
+                return original.withIfExists(fluidlogged, escaped);
             }
         }
         return original;

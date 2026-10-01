@@ -6,8 +6,13 @@
     "AbstractBedBlockMixin",
     "BambooBlockMixin",
     "BambooShootBlockMixin",
+    "BubbleColumnBlockMixin",
+    "CropBlockMixin",
     "DoorBlockMixin",
+    "FluidBlockMixin",
     "RedstoneWireBlockMixin",
+    "SeagrassBlockMixin",
+    "SoulFireBlockMixin",
     "SugarCaneBlockMixin",
     "TallPlantBlockMixin"
   ],

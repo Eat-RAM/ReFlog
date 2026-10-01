@@ -1,7 +1,5 @@
 package io.github.eat_ram.reflog.mixin.blockfix;
 
-import java.util.Optional;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -14,7 +12,6 @@ import io.github.eat_ram.reflog.state.StringProperty;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Waterloggable;
-import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -28,43 +25,6 @@ import static net.minecraft.state.property.Properties.WATERLOGGED;
 
 @Mixin(net.minecraft.block.BambooShootBlock.class)
 public abstract class BambooShootBlockMixin {
-    @ModifyExpressionValue(method = "getStateForNeighborUpdate", at = @At(
-        value = "INVOKE", ordinal = 0,
-        target = "Lnet/minecraft/block/Block;getDefaultState()Lnet/minecraft/block/BlockState;"
-    ))
-    private BlockState modifyBlockState(
-        BlockState original, final BlockState state, final WorldView world,
-        final ScheduledTickView tickView, final BlockPos pos,
-        final Direction direction, final BlockPos neighborPos,
-        final BlockState neighborState, final Random random
-    ) {
-        if (!original.isAir()) {
-            return original;
-        }
-        Block block = state.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
-        if (fluidlogged != null) {
-            Optional<String> fs = state.getOrEmpty(fluidlogged);
-            if (fs.isPresent()) {
-                FluidState fstate = (
-                    block instanceof Waterloggable &&
-                    fluidlogged.getName().equals(WATERLOGGED.getName()) ?
-                    FluidStateTranscript.restoreWaterlogged(
-                        FluidStateTranscript.unescape(fs.get()), true
-                    ) : FluidStateTranscript.restore(
-                        FluidStateTranscript.unescape(fs.get()), true
-                    )
-                );
-                Fluid fluid = fstate.getFluid();
-                tickView
-                .scheduleFluidTick(pos, fluid, fluid.getTickRate(world));
-                return fstate.getBlockState();
-            }
-        }
-        return original;
-    }
-
     @ModifyExpressionValue(method = "getStateForNeighborUpdate", at = @At(
         value = "INVOKE", ordinal = 1,
         target = "Lnet/minecraft/block/Block;getDefaultState()Lnet/minecraft/block/BlockState;"

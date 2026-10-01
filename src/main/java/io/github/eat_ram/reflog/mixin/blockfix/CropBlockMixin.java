@@ -4,39 +4,37 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import io.github.eat_ram.reflog.block.ModifyExisting;
 import io.github.eat_ram.reflog.state.FluidStateTranscript;
 import io.github.eat_ram.reflog.state.StringProperty;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Waterloggable;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
-import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 
 import static net.minecraft.state.property.Properties.WATERLOGGED;
 
-@Mixin(net.minecraft.block.RedstoneWireBlock.class)
-public abstract class RedstoneWireBlockMixin {
-    @ModifyReturnValue(
-        method = "getPlacementState(Lnet/minecraft/world/BlockView;Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;",
-        at = @At("RETURN")
-    )
-    private BlockState modifyBlockState(
-        BlockState original, final BlockView world, BlockState state,
-        final BlockPos pos
+@Mixin(net.minecraft.block.CropBlock.class)
+public abstract class CropBlockMixin {
+    @ModifyExpressionValue(method = "randomTick", at = @At(
+        value = "INVOKE", ordinal = 0,
+        target = "Lnet/minecraft/block/CropBlock;withAge(I)Lnet/minecraft/block/BlockState;"
+    ))
+    private BlockState growInFluid(
+        BlockState original, final BlockState state, final ServerWorld level,
+        final BlockPos pos, final Random random
     ) {
         Block block = original.getBlock();
         StringProperty fluidlogged =
         ModifyExisting.OVERRIDES.get(block.getClass());
         if (fluidlogged != null) {
-            FluidState fluidState = world.getFluidState(pos);
+            FluidState fluidState = state.getFluidState();
             String escaped = FluidStateTranscript.escape(
-                block instanceof Waterloggable &&
+                this instanceof Waterloggable &&
                 fluidlogged.getName().equals(WATERLOGGED.getName()) ?
                 FluidStateTranscript.transcriptWaterlogged(fluidState) :
                 FluidStateTranscript.transcript(fluidState)
@@ -48,28 +46,27 @@ public abstract class RedstoneWireBlockMixin {
         return original;
     }
 
-    @ModifyExpressionValue(method = "onUse", at = @At(
+    @ModifyExpressionValue(method = "applyGrowth", at = @At(
         value = "INVOKE", ordinal = 0,
-        target = "Lnet/minecraft/block/BlockState;with(Lnet/minecraft/state/property/Property;Ljava/lang/Comparable;)Ljava/lang/Object;"
+        target = "Lnet/minecraft/block/CropBlock;withAge(I)Lnet/minecraft/block/BlockState;"
     ))
-    private Object modifyBlockState(
-        Object original, final BlockState state, final World world,
-        final BlockPos pos, final PlayerEntity player, final BlockHitResult hit
+    private BlockState growInFluid(
+        BlockState original, final World world, final BlockPos pos,
+        final BlockState state
     ) {
-        BlockState nstate = (BlockState)original;
-        Block block = nstate.getBlock();
+        Block block = original.getBlock();
         StringProperty fluidlogged =
         ModifyExisting.OVERRIDES.get(block.getClass());
         if (fluidlogged != null) {
             FluidState fluidState = state.getFluidState();
             String escaped = FluidStateTranscript.escape(
-                block instanceof Waterloggable &&
+                this instanceof Waterloggable &&
                 fluidlogged.getName().equals(WATERLOGGED.getName()) ?
                 FluidStateTranscript.transcriptWaterlogged(fluidState) :
                 FluidStateTranscript.transcript(fluidState)
             );
             if (fluidlogged.getValues().contains(escaped)) {
-                return nstate.withIfExists(fluidlogged, escaped);
+                return original.withIfExists(fluidlogged, escaped);
             }
         }
         return original;

@@ -39,7 +39,6 @@ import static net.minecraft.state.property.Properties.WATERLOGGED;
     net.minecraft.block.BigDripleafBlock.class,
     net.minecraft.block.BigDripleafStemBlock.class,
     net.minecraft.block.BrushableBlock.class,
-    net.minecraft.block.BubbleColumnBlock.class,
     net.minecraft.block.CactusBlock.class,
     net.minecraft.block.CakeBlock.class,
     net.minecraft.block.CampfireBlock.class,

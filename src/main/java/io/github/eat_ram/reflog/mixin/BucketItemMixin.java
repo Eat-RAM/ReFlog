@@ -1,6 +1,7 @@
 package io.github.eat_ram.reflog.mixin;
 
 import io.github.eat_ram.reflog.block.CustomFluidloggable;
+import net.minecraft.block.BubbleColumnBlock;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -93,7 +94,7 @@ public abstract class BucketItemMixin {
         BlockState state = level.getBlockState(pos);
         Block block = state.getBlock();
         StringProperty ppt = ModifyExisting.OVERRIDES.get(block.getClass());
-        if (ppt != null) {
+        if (ppt != null && !(block instanceof BubbleColumnBlock)) {
             String raw = FluidStateTranscript.unescape(state.get(ppt));
             FluidState fstate = block instanceof Waterloggable &&
                 ppt.getName().equals(WATERLOGGED.getName())

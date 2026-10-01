@@ -17,6 +17,7 @@ import io.github.eat_ram.reflog.state.FluidStateTranscript;
 import io.github.eat_ram.reflog.state.StringProperty;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.BubbleColumnBlock;
 import net.minecraft.block.Waterloggable;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
@@ -190,7 +191,7 @@ public abstract class FlowableFluidMixin {
         fluidState = original.getFluidState();
         StringProperty fluidlogged =
         ModifyExisting.OVERRIDES.get(block.getClass());
-        if (fluidlogged != null) {
+        if (fluidlogged != null && !(block instanceof BubbleColumnBlock)) {
             String escaped = FluidStateTranscript.escape((
                 block instanceof Waterloggable &&
                 fluidlogged.getName().equals(WATERLOGGED.getName())

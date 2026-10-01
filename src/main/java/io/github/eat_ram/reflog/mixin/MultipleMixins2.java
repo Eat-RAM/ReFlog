@@ -7,8 +7,11 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import io.github.eat_ram.reflog.block.ModifyExisting;
 import io.github.eat_ram.reflog.state.FluidStateTranscript;
 import io.github.eat_ram.reflog.state.StringProperty;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.SlabBlock;
 import net.minecraft.block.Waterloggable;
+import net.minecraft.block.enums.SlabType;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.item.ItemPlacementContext;
 import org.jetbrains.annotations.Nullable;
@@ -140,11 +143,22 @@ public abstract class MultipleMixins2 {
         @Nullable BlockState original, final ItemPlacementContext ctx
     ) {
         if (original != null) {
+            Block block = original.getBlock();
             StringProperty fluidlogged =
-            ModifyExisting.OVERRIDES.get(original.getBlock().getClass());
+            ModifyExisting.OVERRIDES.get(block.getClass());
             if (fluidlogged != null) {
                 FluidState replacedFluidState =
                 ctx.getWorld().getFluidState(ctx.getBlockPos());
+                if (block instanceof SlabBlock &&
+                    SlabType.DOUBLE == original.getOrEmpty(
+                        SlabBlock.TYPE
+                    ).orElse(SlabType.BOTTOM)
+                ) {
+                    return replacedFluidState.getBlockState().isReplaceable() ?
+                           original.with(
+                        fluidlogged, fluidlogged.getValues().get(0)
+                    ) : null;
+                }
                 String escapedState = FluidStateTranscript.escape(
                     this instanceof Waterloggable &&
                     fluidlogged.getName().equals(WATERLOGGED.getName()) ?
