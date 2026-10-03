@@ -6,7 +6,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eat_ram.reflog.block.ModifyExisting;
 import io.github.eat_ram.reflog.state.FluidStateTranscript;
 import io.github.eat_ram.reflog.state.StringProperty;
@@ -26,22 +27,18 @@ import static net.minecraft.state.property.Properties.WATERLOGGED;
 
 @Mixin(net.minecraft.block.TallPlantBlock.class)
 public abstract class TallPlantBlockMixin {
-    @ModifyExpressionValue(method = "onPlaced", at = @At(
+    @WrapOperation(method = "onPlaced", at = @At(
         value = "INVOKE", ordinal = 0,
-        target = "Lnet/minecraft/block/BlockState;with(Lnet/minecraft/state/property/Property;Ljava/lang/Comparable;)Ljava/lang/Object;"
+        target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"
     ))
-    private Object modifyBlockState(
-        Object original,
-        @Local(ordinal = 0, argsOnly = true) final World world,
-        @Local(ordinal = 1) BlockPos abovePos
+    private boolean modifyBlockState(
+        World instance, BlockPos pos, BlockState state,
+        Operation<Boolean> original
     ) {
-        BlockState state = (BlockState)original;
         Block block = state.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
-            FluidState otherFluidState =
-            world.getBlockState(abovePos).getFluidState();
+            FluidState otherFluidState = instance.getFluidState(pos);
             String escaped = FluidStateTranscript.escape(
                 block instanceof Waterloggable &&
                 fluidlogged.getName().equals(WATERLOGGED.getName()) ?
@@ -49,10 +46,12 @@ public abstract class TallPlantBlockMixin {
                 FluidStateTranscript.transcript(otherFluidState)
             );
             if (fluidlogged.getValues().contains(escaped)) {
-                return state.withIfExists(fluidlogged, escaped);
+                return original.call(instance, pos, state.withIfExists(
+                    fluidlogged, escaped
+                ));
             }
         }
-        return original;
+        return original.call(instance, pos, state);
     }
 
     @ModifyExpressionValue(method = "afterBreak", at = @At(
@@ -69,8 +68,7 @@ public abstract class TallPlantBlockMixin {
             return original;
         }
         Block block = state.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
             Optional<String> fs = state.getOrEmpty(fluidlogged);
             if (fs.isPresent()) {

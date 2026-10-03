@@ -6,7 +6,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import io.github.eat_ram.reflog.block.ModifyExisting;
 import io.github.eat_ram.reflog.state.StringProperty;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BubbleColumnBlock;
 

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import io.github.eat_ram.reflog.block.ModifyExisting;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
@@ -14,6 +15,8 @@ import net.minecraft.state.State;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Contract;
+
+import static io.github.eat_ram.reflog.Config.LOGGER;
 
 public abstract class FluidStateTranscript {
     public static final Pattern PIPE = Pattern.compile("\\|");
@@ -136,7 +139,8 @@ public abstract class FluidStateTranscript {
         }
         String[] seps = PIPE.split(s);
         Identifier id = Identifier.tryParse(seps[0]);
-        FluidState state = Registries.FLUID.get(id).getDefaultState();
+        Fluid fluid = Registries.FLUID.get(id);
+        FluidState state = fluid.getDefaultState();
         HashMap<String, Property<?>> properties = new HashMap<>();
         for (Property<?> i : state.getProperties()) {
             properties.put(i.getName(), i);
@@ -150,7 +154,11 @@ public abstract class FluidStateTranscript {
                 }
             }
         }
-        if (addCache) {
+        if (addCache && (
+            id != null && !ModifyExisting.TRUSTS_FLUIDS.contains(id.toString())
+            || Registries.FLUID.getId(fluid).equals(id)
+        )) {
+            LOGGER.debug("Added fluid state of {} : {}", s, state);
             UNESCAPED_TO_STATE.put(s, state);
         }
         return state;

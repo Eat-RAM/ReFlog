@@ -35,8 +35,7 @@ public abstract class FoliagePlacerMixin {
         final TreeFeature feature, final BlockPos pos
     ) {
         Block block = original.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
             FluidState fluidState = world.getBlockState(pos).getFluidState();
             String escaped = FluidStateTranscript.escape(

@@ -39,8 +39,7 @@ public abstract class StateMixin<O, S> {
         O owner = this.owner;
         if (owner instanceof Block && owner instanceof Waterloggable &&
             property == Properties.WATERLOGGED) {
-            StringProperty fluidlogged =
-            ModifyExisting.OVERRIDES.get(owner.getClass());
+            StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(owner);
             if (fluidlogged != null &&
                 fluidlogged.getName().equals(property.getName())) {
                 //System.err.println(Arrays.toString(this.values));
@@ -69,8 +68,7 @@ public abstract class StateMixin<O, S> {
         O owner = this.owner;
         if (owner instanceof Block && owner instanceof Waterloggable &&
             property == Properties.WATERLOGGED) {
-            StringProperty fluidlogged =
-            ModifyExisting.OVERRIDES.get(owner.getClass());
+            StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(owner);
             if (fluidlogged != null &&
                 fluidlogged.getName().equals(property.getName())) {
                 cir.setReturnValue(Boolean.FALSE.equals(value) ? this.with(

@@ -10,6 +10,7 @@ import io.github.eat_ram.reflog.block.ModifyExisting;
 import io.github.eat_ram.reflog.state.StringProperty;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.state.StateManager;
 
 @Mixin(net.minecraft.block.Block.class)
@@ -22,9 +23,22 @@ public abstract class BlockMixin {
         final Block.Settings properties, CallbackInfo ci,
         @Local StateManager.Builder<Block, BlockState> builder
     ) {
+        RegistryKey<Block> registryKey =
+        ((AbstractBlockAccessor.Settings)properties).getRegistryKey();
+        if (registryKey != null) {
+            StringProperty fluidlogged =
+            ModifyExisting.OVERRIDES_PER_BLOCK.get(registryKey.getValue());
+            if (fluidlogged != null) {
+                ModifyExisting.CACHED_PPTS
+                .put((Block)(Object)this, fluidlogged);
+                builder.add(fluidlogged);
+                return;
+            }
+        }
         StringProperty fluidlogged =
         ModifyExisting.OVERRIDES.get(this.getClass());
         if (fluidlogged != null) {
+            ModifyExisting.CACHED_PPTS.put((Block)(Object)this, fluidlogged);
             builder.add(fluidlogged);
         }
     }

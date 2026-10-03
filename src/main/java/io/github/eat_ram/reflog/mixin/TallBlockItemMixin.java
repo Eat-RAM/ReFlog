@@ -31,7 +31,7 @@ public abstract class TallBlockItemMixin extends BlockItem {
         final BlockState state, @Local(ordinal = 0) BlockPos above
     ) {
         StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(this.getBlock().getClass());
+        ModifyExisting.CACHED_PPTS.get(this.getBlock());
         if (fluidlogged != null) {
             return context.getWorld().getFluidState(above).getBlockState();
         }

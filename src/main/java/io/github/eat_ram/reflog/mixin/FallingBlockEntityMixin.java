@@ -18,8 +18,7 @@ public abstract class FallingBlockEntityMixin {
     ), index = 4)
     private static BlockState removeFluidlog(BlockState blockState) {
         Block block = blockState.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
             return blockState.with(
                 fluidlogged, fluidlogged.getValues().get(0)

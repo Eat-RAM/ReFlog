@@ -36,8 +36,7 @@ public abstract class BambooShootBlockMixin {
         final BlockState neighborState, final Random random
     ) {
         Block block = original.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
             FluidState fluidState = state.getFluidState();
             String escaped = FluidStateTranscript.escape(
@@ -60,8 +59,7 @@ public abstract class BambooShootBlockMixin {
     private boolean growInFluid(
         ServerWorld instance, BlockPos pos, Operation<Boolean> original
     ) {
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(this.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(this);
         if (fluidlogged != null) {
             BlockState blockState = instance.getBlockState(pos);
             FluidState fluidState = blockState.getFluidState();
@@ -78,19 +76,18 @@ public abstract class BambooShootBlockMixin {
         return original.call(instance, pos);
     }
 
-    @ModifyExpressionValue(method = "grow(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)V", at = @At(
+    @WrapOperation(method = "grow(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)V", at = @At(
         value = "INVOKE", ordinal = 0,
-        target = "Lnet/minecraft/block/BlockState;with(Lnet/minecraft/state/property/Property;Ljava/lang/Comparable;)Ljava/lang/Object;"
+        target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"
     ))
-    private Object growToFluid(
-        Object original, final World world, final BlockPos pos
+    private boolean growToFluid(
+        World instance, BlockPos pos, BlockState state,
+        Operation<Boolean> original
     ) {
-        BlockState nstate = (BlockState)original;
-        Block block = nstate.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        Block block = state.getBlock();
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
-            FluidState fluidState = world.getFluidState(pos.up());
+            FluidState fluidState = instance.getFluidState(pos);
             String escaped = FluidStateTranscript.escape(
                 block instanceof Waterloggable &&
                 fluidlogged.getName().equals(WATERLOGGED.getName()) ?
@@ -98,9 +95,11 @@ public abstract class BambooShootBlockMixin {
                 FluidStateTranscript.transcript(fluidState)
             );
             if (fluidlogged.getValues().contains(escaped)) {
-                return nstate.withIfExists(fluidlogged, escaped);
+                return original.call(instance, pos, state.withIfExists(
+                    fluidlogged, escaped
+                ));
             }
         }
-        return original;
+        return original.call(instance, pos, state);
     }
 }

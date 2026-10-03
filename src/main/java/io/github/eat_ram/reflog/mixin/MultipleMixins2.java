@@ -144,8 +144,7 @@ public abstract class MultipleMixins2 {
     ) {
         if (original != null) {
             Block block = original.getBlock();
-            StringProperty fluidlogged =
-            ModifyExisting.OVERRIDES.get(block.getClass());
+            StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
             if (fluidlogged != null) {
                 FluidState replacedFluidState =
                 ctx.getWorld().getFluidState(ctx.getBlockPos());

@@ -16,7 +16,6 @@ import net.minecraft.block.Waterloggable;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 
 import static net.minecraft.state.property.Properties.WATERLOGGED;
@@ -33,8 +32,7 @@ public abstract class BambooBlockMixin {
         if (original) {
             return true;
         }
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(this.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(this);
         if (fluidlogged != null) {
             String escaped = FluidStateTranscript.escape(
                 this instanceof Waterloggable &&
@@ -54,8 +52,7 @@ public abstract class BambooBlockMixin {
     private boolean growToFluid(
         ServerWorld instance, BlockPos pos, Operation<Boolean> original
     ) {
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(this.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(this);
         if (fluidlogged != null) {
             BlockState blockState = instance.getBlockState(pos);
             FluidState fluidState = blockState.getFluidState();
@@ -79,8 +76,7 @@ public abstract class BambooBlockMixin {
     private boolean growInFluid(
         ServerWorld instance, BlockPos pos, Operation<Boolean> original
     ) {
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(this.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(this);
         if (fluidlogged != null) {
             BlockState blockState = instance.getBlockState(pos);
             FluidState fluidState = blockState.getFluidState();
@@ -97,20 +93,18 @@ public abstract class BambooBlockMixin {
         return original.call(instance, pos);
     }
 
-    @ModifyExpressionValue(method = "updateLeaves", at = @At(
-        value = "INVOKE", ordinal = 4,
-        target = "Lnet/minecraft/block/BlockState;with(Lnet/minecraft/state/property/Property;Ljava/lang/Comparable;)Ljava/lang/Object;"
+    @WrapOperation(method = "updateLeaves", at = @At(
+        value = "INVOKE", ordinal = 2,
+        target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"
     ))
-    private Object growToFluid(
-        Object original, final BlockState state, final World world,
-        final BlockPos pos, final Random random, final int height
+    private boolean growToFluid(
+        World instance, BlockPos pos, BlockState state,
+        Operation<Boolean> original
     ) {
-        BlockState nstate = (BlockState)original;
-        Block block = nstate.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        Block block = state.getBlock();
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
-            FluidState fluidState = world.getFluidState(pos.up());
+            FluidState fluidState = instance.getFluidState(pos);
             String escaped = FluidStateTranscript.escape(
                 block instanceof Waterloggable &&
                 fluidlogged.getName().equals(WATERLOGGED.getName()) ?
@@ -118,9 +112,11 @@ public abstract class BambooBlockMixin {
                 FluidStateTranscript.transcript(fluidState)
             );
             if (fluidlogged.getValues().contains(escaped)) {
-                return nstate.withIfExists(fluidlogged, escaped);
+                return original.call(instance, pos, state.withIfExists(
+                    fluidlogged, escaped
+                ));
             }
         }
-        return original;
+        return original.call(instance, pos, state);
     }
 }

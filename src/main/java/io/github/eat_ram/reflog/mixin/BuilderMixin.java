@@ -26,7 +26,7 @@ public abstract class BuilderMixin<O, S extends State<O, S>> {
     private Property<?>[] removeWaterlogged(Property<?>... properties) {
         O owner = this.owner;
         StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(owner.getClass());
+        ModifyExisting.CACHED_PPTS.get(owner);
         if (owner instanceof Block && owner instanceof Waterloggable &&
             fluidlogged != null &&
             fluidlogged.getName().equals(Properties.WATERLOGGED.getName())) {

@@ -18,8 +18,7 @@ public abstract class SeagrassBlockMixin {
     ))
     private boolean modifyBlockState(BlockState instance, Operation<Boolean> original) {
         Block block = instance.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
             return true;
         }

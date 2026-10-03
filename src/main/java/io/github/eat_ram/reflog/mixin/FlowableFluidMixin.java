@@ -43,7 +43,7 @@ public abstract class FlowableFluidMixin {
         if (ModifyExisting.RETAIN_FLUIDS_IN.contains(block.getClass())) {
             ci.cancel();
         }
-        StringProperty ppt = ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty ppt = ModifyExisting.CACHED_PPTS.get(block);
         if (ppt != null) {
             if (!world.isClient()) {
                 String escaped = FluidStateTranscript.escape((
@@ -78,7 +78,7 @@ public abstract class FlowableFluidMixin {
         if (ModifyExisting.RETAIN_FLUIDS_IN.contains(block.getClass())) {
             return false;
         }
-        StringProperty ppt = ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty ppt = ModifyExisting.CACHED_PPTS.get(block);
         if (ppt != null) {
             String escaped = FluidStateTranscript.escape(
                 block instanceof Waterloggable &&
@@ -111,7 +111,7 @@ public abstract class FlowableFluidMixin {
         if (ModifyExisting.RETAIN_FLUIDS_IN.contains(block.getClass())) {
             return false;
         }
-        StringProperty ppt = ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty ppt = ModifyExisting.CACHED_PPTS.get(block);
         if (ppt != null) {
             String escaped = FluidStateTranscript.escape(
                 block instanceof Waterloggable &&
@@ -142,7 +142,7 @@ public abstract class FlowableFluidMixin {
         if (ModifyExisting.RETAIN_FLUIDS_IN.contains(block.getClass())) {
             return false;
         }
-        StringProperty ppt = ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty ppt = ModifyExisting.CACHED_PPTS.get(block);
         if (ppt != null) {
             String escaped = FluidStateTranscript.escape(
                 block instanceof Waterloggable &&
@@ -167,8 +167,7 @@ public abstract class FlowableFluidMixin {
     private static boolean canFill(boolean original, final BlockState state) {
         if (!original) {
             Block block = state.getBlock();
-            StringProperty ppt =
-            ModifyExisting.OVERRIDES.get(block.getClass());
+            StringProperty ppt = ModifyExisting.CACHED_PPTS.get(block);
             if (ppt != null) {
                 return true;
             }
@@ -189,8 +188,7 @@ public abstract class FlowableFluidMixin {
     ) {
         Block block = blockState.getBlock();
         fluidState = original.getFluidState();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null && !(block instanceof BubbleColumnBlock)) {
             String escaped = FluidStateTranscript.escape((
                 block instanceof Waterloggable &&

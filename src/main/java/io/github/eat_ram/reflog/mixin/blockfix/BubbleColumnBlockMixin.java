@@ -3,9 +3,7 @@ package io.github.eat_ram.reflog.mixin.blockfix;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
@@ -43,7 +41,7 @@ public abstract class BubbleColumnBlockMixin {
         final BlockState neighborState, final Random random
     ) {
         StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(state.getBlock().getClass());
+        ModifyExisting.CACHED_PPTS.get(state.getBlock());
         if (fluidlogged != null) {
             return false;
         }
@@ -62,7 +60,7 @@ public abstract class BubbleColumnBlockMixin {
         CallbackInfoReturnable<BlockState> cir
     ) {
         StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(state.getBlock().getClass());
+        ModifyExisting.CACHED_PPTS.get(state.getBlock());
         if (fluidlogged != null) {
             Fluid fluid = (FluidStateTranscript.restore(
                 FluidStateTranscript.unescape(state.get(fluidlogged)), true
@@ -81,7 +79,7 @@ public abstract class BubbleColumnBlockMixin {
         final BlockState occupyState
     ) {
         StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(occupyState.getBlock().getClass());
+        ModifyExisting.CACHED_PPTS.get(occupyState.getBlock());
         if (fluidlogged != null) {
             return occupyState.getFluidState().getBlockState();
         }
@@ -94,8 +92,7 @@ public abstract class BubbleColumnBlockMixin {
         final BlockState occupyState
     ) {
         Block block = original.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
             FluidState fluidState = occupyState.getFluidState();
             String escaped = FluidStateTranscript.escape(
@@ -120,7 +117,7 @@ public abstract class BubbleColumnBlockMixin {
         final BlockState occupyState
     ) {
         StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(bubbleColumn.getClass());
+        ModifyExisting.CACHED_PPTS.get(bubbleColumn);
         if (fluidlogged != null) {
             return true;
         }
@@ -135,31 +132,28 @@ public abstract class BubbleColumnBlockMixin {
         int original, final Block bubbleColumn, final BlockState occupyState
     ) {
         StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(bubbleColumn.getClass());
+        ModifyExisting.CACHED_PPTS.get(bubbleColumn);
         if (fluidlogged != null) {
             return 8;
         }
         return original;
     }
 
-    @ModifyArgs(
+    @WrapOperation(
         method = "update(Lnet/minecraft/block/Block;Lnet/minecraft/world/WorldAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/block/BlockState;)V",
         at = @At(
             value = "INVOKE", ordinal = 1,
             target = "Lnet/minecraft/world/WorldAccess;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;I)Z"
         )
     )
-    private static void modifyPlacedBubbleState(
-        Args args, final Block bubbleColumn, final WorldAccess level,
-        final BlockPos occupyAt, final BlockState occupyState,
-        final BlockState belowState
+    private static boolean modifyPlacedBubbleState(
+        WorldAccess instance, BlockPos pos, BlockState state, int flags,
+        Operation<Boolean> original
     ) {
-        BlockState state = args.get(1);
         Block block = state.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
-            FluidState fluidState = level.getFluidState(args.get(0));
+            FluidState fluidState = instance.getFluidState(pos);
             String escaped = FluidStateTranscript.escape(
                 block instanceof Waterloggable &&
                 fluidlogged.getName().equals(WATERLOGGED.getName()) ?
@@ -167,8 +161,11 @@ public abstract class BubbleColumnBlockMixin {
                 FluidStateTranscript.transcript(fluidState)
             );
             if (fluidlogged.getValues().contains(escaped)) {
-                args.set(1, state.withIfExists(fluidlogged, escaped));
+                return original.call(instance, pos, state.withIfExists(
+                    fluidlogged, escaped
+                ), flags);
             }
         }
+        return original.call(instance, pos, state, flags);
     }
 }

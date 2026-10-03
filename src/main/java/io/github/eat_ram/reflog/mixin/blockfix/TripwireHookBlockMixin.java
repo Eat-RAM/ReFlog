@@ -17,20 +17,27 @@ import net.minecraft.world.World;
 
 import static net.minecraft.state.property.Properties.WATERLOGGED;
 
-@Mixin(net.minecraft.block.AbstractBedBlock.class)
-public abstract class AbstractBedBlockMixin {
-    @WrapOperation(method = "onPlaced", at = @At(
+@Mixin(net.minecraft.block.TripwireHookBlock.class)
+public abstract class TripwireHookBlockMixin {
+    @WrapOperation(method = "update(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;ZZILnet/minecraft/block/BlockState;)V", at = {@At(
         value = "INVOKE", ordinal = 0,
         target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"
-    ))
-    private boolean modifyBlockState(
+    ), @At(
+        value = "INVOKE", ordinal = 1,
+        target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"
+    ), @At(
+        value = "INVOKE", ordinal = 2,
+        target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"
+    )})
+    private static boolean modifyBlockState(
         World instance, BlockPos pos, BlockState state,
         Operation<Boolean> original
     ) {
         Block block = state.getBlock();
         StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
-            FluidState otherFluidState = instance.getFluidState(pos);
+            FluidState otherFluidState =
+            instance.getBlockState(pos).getFluidState();
             String escaped = FluidStateTranscript.escape(
                 block instanceof Waterloggable &&
                 fluidlogged.getName().equals(WATERLOGGED.getName()) ?

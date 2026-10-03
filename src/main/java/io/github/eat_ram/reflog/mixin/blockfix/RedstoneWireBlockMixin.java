@@ -31,8 +31,7 @@ public abstract class RedstoneWireBlockMixin {
         final BlockPos pos
     ) {
         Block block = original.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
             FluidState fluidState = world.getFluidState(pos);
             String escaped = FluidStateTranscript.escape(
@@ -58,8 +57,7 @@ public abstract class RedstoneWireBlockMixin {
     ) {
         BlockState nstate = (BlockState)original;
         Block block = nstate.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
             FluidState fluidState = state.getFluidState();
             String escaped = FluidStateTranscript.escape(

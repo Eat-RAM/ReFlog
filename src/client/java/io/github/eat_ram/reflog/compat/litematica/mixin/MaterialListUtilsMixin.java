@@ -28,7 +28,7 @@ public abstract class MaterialListUtilsMixin {
     private static boolean
     handle(BlockState state, Operation<Boolean> original) {
         Block block = state.getBlock();
-        return ModifyExisting.OVERRIDES.get(block.getClass()) != null || (
+        return ModifyExisting.CACHED_PPTS.get(block) != null || (
             block instanceof CustomFluidloggable &&
             ((CustomFluidloggable)block).getFluidloggedProperty() != null
         ) || original.call(state);
@@ -44,7 +44,7 @@ public abstract class MaterialListUtilsMixin {
         Object2IntOpenHashMap<ItemType> itemTypesOut, MaterialCache cache
     ) {
         Block block = state.getBlock();
-        if (ModifyExisting.OVERRIDES.get(block.getClass()) != null || (
+        if (ModifyExisting.CACHED_PPTS.get(block) != null || (
             block instanceof CustomFluidloggable &&
             ((CustomFluidloggable)block).getFluidloggedProperty() != null
         )) {
@@ -64,7 +64,7 @@ public abstract class MaterialListUtilsMixin {
     @ModifyReturnValue(method = "getBaseBlockState", at = @At("RETURN"))
     private static BlockState getBaseBlockState(BlockState original) {
         Block block = original.getBlock();
-        StringProperty ppt = ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty ppt = ModifyExisting.CACHED_PPTS.get(block);
         if (ppt != null) {
             return original.with(ppt, ppt.getValues().get(0));
         }

@@ -137,7 +137,7 @@ public abstract class MultipleMixins1 {
         BlockPos neighborPos, BlockState neighborState, Random random
     ) {
         StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(original.getBlock().getClass());
+        ModifyExisting.CACHED_PPTS.get(original.getBlock());
         if (fluidlogged != null &&
             !original.getOrEmpty(WATERLOGGED).orElse(false)) {
             Fluid fluid = (this instanceof Waterloggable &&

@@ -31,18 +31,20 @@ import static net.minecraft.state.property.Properties.WATERLOGGED;
 public abstract class AbstractBlockMixin {
     @ModifyReturnValue(method = "getFluidState", at = @At("RETURN"))
     private FluidState modifyFluidState(FluidState original, BlockState state) {
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(this.getClass());
-        if (fluidlogged != null) {
-            Optional<String> fs = state.getOrEmpty(fluidlogged);
-            if (fs.isPresent()) {
-                return this instanceof Waterloggable &&
-                       fluidlogged.getName().equals(WATERLOGGED.getName()) ?
-                       FluidStateTranscript.restoreWaterlogged(
-                    FluidStateTranscript.unescape(fs.get()), true
-                ) : FluidStateTranscript.restore(
-                    FluidStateTranscript.unescape(fs.get()), true
-                );
+        if ((Object)this instanceof Block) {
+            StringProperty fluidlogged =
+            ModifyExisting.CACHED_PPTS.get((Block)(Object)this);
+            if (fluidlogged != null) {
+                Optional<String> fs = state.getOrEmpty(fluidlogged);
+                if (fs.isPresent()) {
+                    return this instanceof Waterloggable &&
+                           fluidlogged.getName().equals(WATERLOGGED.getName())?
+                           FluidStateTranscript.restoreWaterlogged(
+                               FluidStateTranscript.unescape(fs.get()), true
+                           ) : FluidStateTranscript.restore(
+                        FluidStateTranscript.unescape(fs.get()), true
+                    );
+                }
             }
         }
         return original;
@@ -55,22 +57,24 @@ public abstract class AbstractBlockMixin {
         final Direction direction, final BlockPos neighborPos,
         final BlockState neighborState, final Random random
     ) {
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(this.getClass());
-        if (fluidlogged != null) {
-            Optional<String> fs = state.getOrEmpty(fluidlogged);
-            if (fs.isPresent()) {
-                Fluid fluid = (
-                    this instanceof Waterloggable &&
-                    fluidlogged.getName().equals(WATERLOGGED.getName()) ?
-                    FluidStateTranscript.restoreWaterlogged(
-                        FluidStateTranscript.unescape(fs.get()), true
-                    ) : FluidStateTranscript.restore(
-                        FluidStateTranscript.unescape(fs.get()), true
-                    )
-                ).getFluid();
-                tickView
-                .scheduleFluidTick(pos, fluid, fluid.getTickRate(world));
+        if ((Object)this instanceof Block) {
+            StringProperty fluidlogged =
+            ModifyExisting.CACHED_PPTS.get((Block)(Object)this);
+            if (fluidlogged != null) {
+                Optional<String> fs = state.getOrEmpty(fluidlogged);
+                if (fs.isPresent()) {
+                    Fluid fluid = (
+                        this instanceof Waterloggable &&
+                        fluidlogged.getName().equals(WATERLOGGED.getName()) ?
+                        FluidStateTranscript.restoreWaterlogged(
+                            FluidStateTranscript.unescape(fs.get()), true
+                        ) : FluidStateTranscript.restore(
+                            FluidStateTranscript.unescape(fs.get()), true
+                        )
+                    ).getFluid();
+                    tickView
+                    .scheduleFluidTick(pos, fluid, fluid.getTickRate(world));
+                }
             }
         }
         return original;
@@ -94,7 +98,7 @@ public abstract class AbstractBlockMixin {
                 state.getFluidState().getBlockState() == state) {
                 Block block = ((BlockItem)item).getBlock();
                 StringProperty fluidlogged =
-                ModifyExisting.OVERRIDES.get(block.getClass());
+                ModifyExisting.CACHED_PPTS.get(block);
                 if (fluidlogged != null) {
                     String escaped = FluidStateTranscript.escape(
                         block instanceof Waterloggable &&

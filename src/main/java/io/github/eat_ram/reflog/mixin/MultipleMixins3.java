@@ -22,7 +22,7 @@ public abstract class MultipleMixins3 {
     private FluidState
     modifyFluidState(FluidState original, BlockState state) {
         StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(state.getBlock().getClass());
+        ModifyExisting.CACHED_PPTS.get(state.getBlock());
         if (fluidlogged != null) {
             return FluidStateTranscript.restore(
                 FluidStateTranscript.unescape(state.get(fluidlogged)), true

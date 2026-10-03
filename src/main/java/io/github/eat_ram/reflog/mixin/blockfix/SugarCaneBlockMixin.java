@@ -3,7 +3,6 @@ package io.github.eat_ram.reflog.mixin.blockfix;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eat_ram.reflog.block.ModifyExisting;
@@ -31,8 +30,7 @@ public abstract class SugarCaneBlockMixin {
         final Random random
     ) {
         Block block = state.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
             BlockState blockState = instance.getBlockState(pos);
             FluidState fluidState = blockState.getFluidState();
@@ -49,19 +47,18 @@ public abstract class SugarCaneBlockMixin {
         return original.call(instance, pos);
     }
 
-    @ModifyExpressionValue(method = "randomTick", at = @At(
+    @WrapOperation(method = "randomTick", at = @At(
         value = "INVOKE", ordinal = 0,
-        target = "Lnet/minecraft/block/SugarCaneBlock;getDefaultState()Lnet/minecraft/block/BlockState;"
+        target = "Lnet/minecraft/server/world/ServerWorld;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"
     ))
-    private BlockState growToFluid(
-        BlockState original, final BlockState state, final ServerWorld level,
-        final BlockPos pos, final Random random
+    private boolean growToFluid(
+        ServerWorld instance, BlockPos pos, BlockState state,
+        Operation<Boolean> original
     ) {
-        Block block = original.getBlock();
-        StringProperty fluidlogged =
-        ModifyExisting.OVERRIDES.get(block.getClass());
+        Block block = state.getBlock();
+        StringProperty fluidlogged = ModifyExisting.CACHED_PPTS.get(block);
         if (fluidlogged != null) {
-            FluidState fluidState = level.getFluidState(pos.up());
+            FluidState fluidState = instance.getFluidState(pos);
             String escaped = FluidStateTranscript.escape(
                 block instanceof Waterloggable &&
                 fluidlogged.getName().equals(WATERLOGGED.getName()) ?
@@ -69,9 +66,11 @@ public abstract class SugarCaneBlockMixin {
                 FluidStateTranscript.transcript(fluidState)
             );
             if (fluidlogged.getValues().contains(escaped)) {
-                return original.withIfExists(fluidlogged, escaped);
+                return original.call(instance, pos, state.withIfExists(
+                    fluidlogged, escaped
+                ));
             }
         }
-        return original;
+        return original.call(instance, pos, state);
     }
 }
