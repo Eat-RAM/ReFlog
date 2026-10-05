@@ -41,6 +41,7 @@ public abstract class AbstractBlockStateMixin {
             ((AbstractBlockAccessor)this.getBlock())
             .invokeGetFluidState(this.asBlockState()) != original) {
             this.initShapeCache();
+            return this.fluidState;
         }
         return original;
     }

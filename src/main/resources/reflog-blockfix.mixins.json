@@ -4,8 +4,10 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "AbstractBedBlockMixin",
+    "AbstractPlantStemBlockMixin",
     "BambooBlockMixin",
     "BambooShootBlockMixin",
+    "BoneMealItemMixin",
     "BubbleColumnBlockMixin",
     "CauldronBehaviorsMixin",
     "CropBlockMixin",

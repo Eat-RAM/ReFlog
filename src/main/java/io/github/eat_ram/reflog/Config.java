@@ -5,7 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
 import io.github.eat_ram.reflog.block.ModifyExisting;
@@ -19,8 +21,18 @@ import org.slf4j.LoggerFactory;
 
 public abstract class Config {
     public static final Logger LOGGER = LoggerFactory.getLogger("reflog");
+    public static final Pattern VAR_PATTERN =
+    Pattern.compile("\\$(?:\\{([0-9A-Za-z_]+)}|([0-9A-Za-z_]+))");
 
     public static void init() {}
+
+    public static String
+    expandVars(String str, HashMap<String, String> map, Properties ppts) {
+        return VAR_PATTERN.matcher(str).replaceAll(mr -> map.computeIfAbsent(
+            mr.group(mr.group(1) != null ? 1 : 2),
+            k -> ppts.getProperty("alias." + k, "")
+        ));
+    }
 
     static {
         Properties ppts = new Properties();
@@ -35,13 +47,17 @@ public abstract class Config {
         } catch (IOException e) {
             LOGGER.error("Error reading reflog.properties", e);
         }
+        HashMap<String, String> aliases = new HashMap<>();
         for (String key : ppts.stringPropertyNames()) {
-            if (key.startsWith("modify_existing.override.")) {
+            if (key.startsWith("alias.")) {
+                aliases.put(key.substring(6), ppts.getProperty(key));
+            } else if (key.startsWith("modify_existing.override.")) {
                 String className = key.substring(25);
                 try {
                     Class<?> clazz = Class.forName(className);
                     if (Block.class.isAssignableFrom(clazz)) {
-                        String value = ppts.getProperty(key);
+                        String value =
+                        expandVars(ppts.getProperty(key), aliases, ppts);
                         String[] split = value.split(";");
                         ArrayList<String> list = new ArrayList<>(split.length);
                         for (int i = 1; i < split.length; ++i) {
@@ -61,7 +77,8 @@ public abstract class Config {
                     LOGGER.error("No such class: {}", className);
                 }
             } else if (key.startsWith("modify_existing.override_block.")) {
-                String value = ppts.getProperty(key);
+                String value =
+                expandVars(ppts.getProperty(key), aliases, ppts);
                 String[] split = value.split(";");
                 ArrayList<String> list = new ArrayList<>(split.length);
                 for (int i = 1; i < split.length; ++i) {
